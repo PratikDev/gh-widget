@@ -1,9 +1,9 @@
 # gh-widget
 
 A self-hosted GitHub stats card, served as SVG from a single Hono API route
-deployed as a Vercel Edge Function. The GitHub username is hardcoded to the
-repo owner (`pratikdev`) — it is not a request parameter, so the widget can't
-be pointed at any other account.
+deployed as a Vercel Edge Function. The GitHub username is fixed by the
+`GITHUB_USERNAME` env var — it is not a request parameter, so the widget
+can't be pointed at another account by anyone calling the endpoint.
 
 ## Usage
 
@@ -17,7 +17,8 @@ be pointed at any other account.
 
 1. Create a GitHub personal access token with `read:user` and `repo` (read)
    scopes.
-2. In the Vercel project settings, add an environment variable:
+2. In the Vercel project settings, add environment variables:
+   - `GITHUB_USERNAME` = the GitHub account to serve stats for
    - `GITHUB_TOKEN` = the token from step 1
 3. Deploy:
 
@@ -34,7 +35,7 @@ loads `.env.local`.
 ```bash
 bun install
 cp .env.example .env.local
-# fill in GITHUB_TOKEN in .env.local
+# fill in GITHUB_USERNAME and GITHUB_TOKEN in .env.local
 bun run dev
 ```
 

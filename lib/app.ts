@@ -2,10 +2,6 @@ import { Hono } from "hono"
 import { fetchGithubStats } from "./github"
 import { renderErrorCard, renderStatsCard, type Theme } from "./svg"
 
-// This widget only ever serves the repo owner's own stats — the username
-// is not a request parameter, so it can't be pointed at any other account.
-const ALLOWED_USER = "pratikdev"
-
 const app = new Hono()
 
 function svgResponse(body: string, status: number) {
@@ -22,13 +18,20 @@ app.get("*", async (c) => {
   const themeParam = c.req.query("theme")
   const theme: Theme = themeParam === "light" ? "light" : "dark"
 
+  // The username is not a request parameter — it's fixed by the server's
+  // own env config, so the widget can't be pointed at another account.
+  const username = process.env.GITHUB_USERNAME
+  if (!username) {
+    return svgResponse(renderErrorCard("server is missing GITHUB_USERNAME", theme), 500)
+  }
+
   const token = process.env.GITHUB_TOKEN
   if (!token) {
     return svgResponse(renderErrorCard("server is missing GITHUB_TOKEN", theme), 500)
   }
 
   try {
-    const stats = await fetchGithubStats(ALLOWED_USER, token)
+    const stats = await fetchGithubStats(username, token)
     return svgResponse(renderStatsCard(stats, theme), 200)
   } catch (err) {
     const message = err instanceof Error ? err.message : "failed to load stats"
